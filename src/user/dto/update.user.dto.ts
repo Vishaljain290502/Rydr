@@ -1,4 +1,7 @@
-import { IsString, IsOptional, IsBoolean, IsDate } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsDate, IsArray, ArrayMinSize, IsNumber, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+
+
 
 export class UpdateUserDto {
   @IsOptional()
@@ -44,9 +47,8 @@ export class UpdateUserDto {
   @IsString()
    address?: string;
 
-  @IsOptional()
-   location?: {
-    type: string;
-    coordinates: [number, number];
-  };
+  //  @IsOptional()
+  // @ValidateNested()
+  // @Type(() => LocationDto)
+  // location?: LocationDto;
 }

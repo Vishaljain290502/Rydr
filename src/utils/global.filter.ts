@@ -11,7 +11,7 @@ export class GlobalExceptionsFilter extends BaseExceptionFilter {
     const request = ctx.getRequest();
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     const message = exception instanceof HttpException ? exception.getResponse() : 'Internal server error';
-
+    console.log("exception",exception);
     this.logger.error(`Exception: ${message}`);
 
     response.status(status).json({

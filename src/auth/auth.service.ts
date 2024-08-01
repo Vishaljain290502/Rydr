@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/user/user.schema';
 import { UserService } from 'src/user/user.service';
 import * as crypto from 'crypto';
+import { CloudinaryService } from 'src/services/cloudinaruy-services';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,7 @@ export class AuthService {
     @InjectModel('User') private readonly userModel: Model<User>,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   hashedPassword(password: string): string {
@@ -47,7 +49,7 @@ export class AuthService {
 
   serializeUser(user:User){
     return {
-      name: user.name,
+      name: `${user.firstName} ${user.lastName}`,
       email:user.email,
       token:user.token
     }
