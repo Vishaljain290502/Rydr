@@ -20,6 +20,67 @@ class LocationDocument {
 }
 
 const locationSchema = SchemaFactory.createForClass(LocationDocument);
+@Schema()
+export class VehicleVerification {
+  @Prop({ required: true })
+  vehicleNumber: string;
+
+  @Prop({ required: true })
+  registrationCertificateNumber: string;
+
+  @Prop({ required: true })
+  insuranceNumber: string;
+
+  @Prop()
+  registrationCertificateUrl: string;
+
+  @Prop()
+  insuranceUrl: string;
+
+  @Prop()
+  vehiclePhotoUrl: string;
+
+  @Prop()
+  vehicleOwnerName:string;
+
+  @Prop()
+  drivingLicenseUrl:string;
+
+  @Prop()
+  vehicleType:string;
+}
+
+
+
+@Schema()
+export class VerificationId {
+  @Prop({ required: true })
+  type: string;
+
+  @Prop({
+    type: {
+      front: { type: String, default: "" },
+      back: { type: String, default: "" },
+      frontPublicId: { type: String, default: "" },
+      backPublicId: { type: String, default: "" },
+    },
+  })
+  id: {
+    front: string;
+    back: string;
+    frontPublicId: string;
+    backPublicId: string;
+  };
+
+  @Prop({ default: "" })
+  photo: string;
+
+  @Prop({ default: "" })
+  photoPublicId: string;
+}
+
+const VerificationIdSchema = SchemaFactory.createForClass(VerificationId);
+
 
 @Schema()
 export class UserDocument {
@@ -62,32 +123,13 @@ export class UserDocument {
   @Prop({ type: locationSchema })
   location: LocationDocument;
 
-  @Prop({
-    type: {
-      type: String, // should be a string
-      id: {
-        front: { type: String, default: "" },
-        back: { type: String, default: "" },
-        frontPublicId: { type: String, default: "" },
-        backPublicId: { type: String, default: "" },
-      },
-      photo: { type: String, default: "" },
-      photoPublicId: { type: String, default: "" },
-    },
-    _id: false,
-  })
-  verificationId: {
-    type: string;
-    id: {
-      front: string;
-      back: string;
-      frontPublicId: string;
-      backPublicId: string;
-    };
-    photo: string;
-    photoPublicId: string;
-  };
+  @Prop({ type: VerificationIdSchema })  
+  verificationId: VerificationId;
+
+  @Prop({ type: VehicleVerification })
+  vehicleVerification?: VehicleVerification;
 }
+
 
 export type User = HydratedDocument<UserDocument>;
 

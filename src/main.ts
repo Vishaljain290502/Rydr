@@ -7,6 +7,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new GlobalExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe());
+
+  // app.use(new AuthMiddleware().use);
+
   await app.listen(3000);
+
+
 }
 bootstrap();

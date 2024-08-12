@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { LocationDto } from './dto/location.dto';
 import { VerificationIdDto } from '../user/dto/update.verification.dto';
 import { CloudinaryService } from 'src/services/cloudinaruy-services';
+import { CreateVehicleVerificationDto } from './dto/vehicle.verification.dto';
 
 
 
@@ -72,15 +73,10 @@ export class UserService {
   }  
 
   async verifyUser(id: Types.ObjectId, files: any, verificationIdDto: VerificationIdDto): Promise<User> {
-    // console.log('Files:', files);
-    // console.log('Verification DTO:', verificationIdDto);
-  
     const user = await this.userModel.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-  
-
     const verificationId = {
       type: verificationIdDto.type,  
       id: {
@@ -93,26 +89,86 @@ export class UserService {
       photoPublicId: '',
     };
   
+    console.log("Received files:", files);
+  
     if (files.idFront && files.idFront[0]) {
       const frontResult = await this.cloudinaryService.uploadImage(files.idFront[0]);
+      console.log("Front ID upload result:", frontResult);
       verificationId.id.front = frontResult.secure_url;
       verificationId.id.frontPublicId = frontResult.public_id;
     }
   
     if (files.idBack && files.idBack[0]) {
       const backResult = await this.cloudinaryService.uploadImage(files.idBack[0]);
+      console.log("Back ID upload result:", backResult);
       verificationId.id.back = backResult.secure_url;
       verificationId.id.backPublicId = backResult.public_id;
     }
   
     if (files.photo && files.photo[0]) {
       const photoResult = await this.cloudinaryService.uploadImage(files.photo[0]);
+      console.log("Photo upload result:", photoResult);
       verificationId.photo = photoResult.secure_url;
       verificationId.photoPublicId = photoResult.public_id;
     }
+  
+    console.log("Final verificationId object:", verificationId);
   
     user.verificationId = verificationId;
     return user.save();
   }
   
+  async verifyVehicle(
+    id: Types.ObjectId,
+    files: {
+      registrationCertificate?: Express.Multer.File[],
+      insurance?: Express.Multer.File[],
+      vehiclePhoto?: Express.Multer.File[],
+      drivingLicense?: Express.Multer.File[],
+    },
+    createVehicleVerificationDto: CreateVehicleVerificationDto,
+  ): Promise<User> {
+    const user = await this.userModel.findById(id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const { vehicleNumber, registrationCertificateNumber, insuranceNumber, vehicleType, vehicleOwnerName } = createVehicleVerificationDto;
+
+    const vehicleVerification = {
+      vehicleNumber,
+      registrationCertificateNumber,
+      insuranceNumber,
+      vehicleOwnerName,
+      vehicleType,
+      registrationCertificateUrl: '',
+      insuranceUrl: '',
+      vehiclePhotoUrl: '',
+      drivingLicenseUrl:'',
+    };
+
+    if (files.registrationCertificate && files.registrationCertificate[0]) {
+      const registrationCertificateResult = await this.cloudinaryService.uploadImage(files.registrationCertificate[0]);
+      vehicleVerification.registrationCertificateUrl = registrationCertificateResult.secure_url;
+    }
+
+    if (files.insurance && files.insurance[0]) {
+      const insuranceResult = await this.cloudinaryService.uploadImage(files.insurance[0]);
+      vehicleVerification.insuranceUrl = insuranceResult.secure_url;
+    }
+
+    if (files.vehiclePhoto && files.vehiclePhoto[0]) {
+      const vehiclePhotoResult = await this.cloudinaryService.uploadImage(files.vehiclePhoto[0]);
+      vehicleVerification.vehiclePhotoUrl = vehiclePhotoResult.secure_url;
+    }
+
+    if (files.drivingLicense && files.drivingLicense[0]){
+      const drivingLicenseResult = await this.cloudinaryService.uploadImage(files.drivingLicense[0]);
+      vehicleVerification.drivingLicenseUrl = drivingLicenseResult.secure_url;
+      
+    }
+
+    user.vehicleVerification = vehicleVerification;
+    return await user.save();
+  } 
 }
