@@ -1,8 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, HydratedDocument } from 'mongoose';
 
+// LocationDocument Schema
 @Schema()
-class LocationDocument {
+export class LocationDocument {
   @Prop({
     type: String,
     enum: ["Point"],
@@ -19,7 +20,9 @@ class LocationDocument {
   coordinates: [number, number];
 }
 
-const locationSchema = SchemaFactory.createForClass(LocationDocument);
+export const LocationSchema = SchemaFactory.createForClass(LocationDocument);
+
+// VehicleVerification Schema
 @Schema()
 export class VehicleVerification {
   @Prop({ required: true })
@@ -41,17 +44,18 @@ export class VehicleVerification {
   vehiclePhotoUrl: string;
 
   @Prop()
-  vehicleOwnerName:string;
+  vehicleOwnerName: string;
 
   @Prop()
-  drivingLicenseUrl:string;
+  drivingLicenseUrl: string;
 
   @Prop()
-  vehicleType:string;
+  vehicleType: string;
 }
 
+export const VehicleVerificationSchema = SchemaFactory.createForClass(VehicleVerification);
 
-
+// VerificationId Schema
 @Schema()
 export class VerificationId {
   @Prop({ required: true })
@@ -79,9 +83,9 @@ export class VerificationId {
   photoPublicId: string;
 }
 
-const VerificationIdSchema = SchemaFactory.createForClass(VerificationId);
+export const VerificationIdSchema = SchemaFactory.createForClass(VerificationId);
 
-
+// UserDocument Schema
 @Schema()
 export class UserDocument {
   @Prop()
@@ -102,8 +106,11 @@ export class UserDocument {
   @Prop()
   token: string;
 
-  @Prop()
-  mobileNumber: string;
+  @Prop({ required: true })
+  countryCode: string;
+
+  @Prop({ required: true })
+  number: string;
 
   @Prop({ default: false })
   isPhoneVerified: boolean;
@@ -114,23 +121,31 @@ export class UserDocument {
   @Prop()
   resetTokenExpiration: Date;
 
-  @Prop()
-  otp: string;
+  @Prop({
+    type: {
+      value: { type: String, required: true },
+      createdAt: { type: Date, required: true }
+    }
+  })
+  otp: {
+    value: string;
+    createdAt: Date;
+  };
 
   @Prop()
   address: string;
 
-  @Prop({ type: locationSchema })
+  @Prop({ type: LocationSchema })
   location: LocationDocument;
 
-  @Prop({ type: VerificationIdSchema })  
+  @Prop({ type: VerificationIdSchema })
   verificationId: VerificationId;
 
-  @Prop({ type: VehicleVerification })
+  @Prop({ type: VehicleVerificationSchema })
   vehicleVerification?: VehicleVerification;
 }
-
 
 export type User = HydratedDocument<UserDocument>;
 
 export const userSchema = SchemaFactory.createForClass(UserDocument);
+

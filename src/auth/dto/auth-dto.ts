@@ -1,4 +1,5 @@
-import { IsEmail, IsNotEmpty, IsString, MaxLength, Min, MinLength } from "class-validator";
+import { Type } from "class-transformer";
+import { IsEmail, IsNotEmpty, IsString, Length, MaxLength, Min, MinLength, ValidateNested } from "class-validator";
 
 
 export class LoginUserDto {
@@ -42,6 +43,29 @@ export class forgotPasswordDto {
     @IsString()
     otp: string;
   }
+  
+  export class SendOtpDto {
+    @IsString()
+    @IsNotEmpty()
+    countryCode: string;
+  
+    @IsString()
+    @IsNotEmpty()
+    number: string;
+  }
+  export class VerifyOtpDto {
+    @IsString()
+    @IsNotEmpty()
+    countryCode: string;
+  
+    @IsString()
+    @IsNotEmpty()
+    number: string;
+  
+    @IsString()
+    @IsNotEmpty()
+    otp: string;
+  }
 
   export class VerifyEmailDto {
     @IsEmail()
@@ -50,6 +74,6 @@ export class forgotPasswordDto {
 
     @IsString()
     @IsNotEmpty()
-    // @Length(6, 6) 
+    @Length(6, 6) 
     otp: string;
 }

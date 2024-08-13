@@ -61,7 +61,21 @@ export class UserService {
     const user = await this.userModel.findById(id).exec();
     return user;
   }
+  async findUserByPhone(
+    countryCode: string,
+    number: string,
+  ): Promise<User | null> {
+    return this.userModel.findOne({ countryCode, number }).exec();
+  }
 
+  async updateUserByIdforOtp(
+    userId: Types.ObjectId,
+    updateData: Partial<User>,
+  ): Promise<User | null> {
+    return this.userModel.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    }).exec();
+  }
   async updateUserById(id: Types.ObjectId, updateUserDto: UpdateUserDto): Promise<User> {
     const updatedUser = await this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();
     return updatedUser;

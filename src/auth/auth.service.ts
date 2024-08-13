@@ -42,6 +42,24 @@ export class AuthService {
    return user;
   }
 
+
+  async sendOTPOnPhone(otp: string, phoneNumber: string) {
+    console.log(`Sending OTP ${otp} to ${phoneNumber}`);
+  }
+
+
+  async verifyOtp(user: User, otp: string): Promise<boolean> {
+    const currentTime = new Date().getTime();
+    const otpCreationTime = new Date(user.otp.createdAt).getTime();
+    const timeDifference = (currentTime - otpCreationTime) / 1000 / 60; // time in minutes
+
+    if (user.otp.value === otp && timeDifference <= 5) {
+      return true;
+    } else {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+  }
+
   // async validateToken(token: string): Promise<User | null> {
   //   try {
   //     const payload = this.jwtService.verify(token);
@@ -72,10 +90,10 @@ export class AuthService {
 
 
 
-  private readonly FIXED_OTP = '123456';
-  async verifyOtp(user: any, otp: string): Promise<boolean> {
-    return otp === this.FIXED_OTP;
-  }
+  // private readonly FIXED_OTP = '123456';
+  // async verifyOtp(user: any, otp: string): Promise<boolean> {
+  //   return otp === this.FIXED_OTP;
+  // }
 
   serializeUser(user:User){
     return {
