@@ -112,6 +112,10 @@ export class UserDocument {
   @Prop({ required: true })
   number: string;
 
+  @Prop({ required: true, enum: ['user', 'admin'], default: 'user' })
+  role: string;
+
+
   @Prop({ default: false })
   isPhoneVerified: boolean;
 

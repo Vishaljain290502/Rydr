@@ -4,21 +4,31 @@ import {
   Controller,
   HttpStatus,
   Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserService } from 'src/user/user.service';
-import { CreateUserDto } from 'src/user/dto/create-user.dto';
+import { CreateUserDto } from 'src/user/dto/user.dto';
 import {
   LoginUserDto,
   forgotPasswordDto,
   ResetPasswordDto,
-  VerifyPhoneDto,
-  VerifyEmailDto,
   SendOtpDto,
   VerifyOtpDto,
+  ResendOtpDto,
+  ChangePasswordDto,
+  SendEmailOtpDto,
+  VerifyEmailOtpDto,
 } from './dto/auth-dto';
 import { MailerService } from 'src/helper/mailer.service';
+import { Roles, RolesGuard } from 'src/guard/rolesGuard';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { Auth, GetUserId } from 'src/guard/authGuard';
+import { Types } from 'mongoose';
 
+@ApiTags('auth')
+@ApiSecurity('basic')
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -120,28 +130,38 @@ export class AuthController {
     };
   }
 
-  // @Post('/verify-phone')
-  // async verifyPhone(@Body() verifyPhoneDto: VerifyPhoneDto): Promise<any> {
-  //   const user = await this.userService.findUserByPhoneNumber(
-  //     verifyPhoneDto.mobileNumber,
-  //   );
-  //   if (!user) {
-  //     throw new BadRequestException('User not found');
-  //   }
-  //   const isOtpValid = await this.authService.verifyOtp(
-  //     user,
-  //     verifyPhoneDto.otp,
-  //   );
-  //   if (!isOtpValid) {
-  //     throw new BadRequestException('Invalid OTP');
-  //   }
-  //   // Update user verification
-  //   await this.userService.updateUserById(user._id, { isPhoneVerified: true });
-  //   return {
-  //     status: HttpStatus.CREATED,
-  //     message: 'Phone number verified successfully',
-  //   };
-  // }
+  @Post('change-password')
+  @Auth() 
+  async changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @GetUserId() userId: Types.ObjectId, 
+  ): Promise<any> {
+    const user = await this.userService.findUserById(userId);
+    console.log("user",user)
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const isPasswordValid = await this.authService.comparePassword(
+      changePasswordDto.currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new BadRequestException('Current password is incorrect');
+    }
+
+    const hashedNewPassword = await this.authService.hashedPassword(
+      changePasswordDto.newPassword,
+    );
+
+    await this.userService.updateUserById(userId, { password: hashedNewPassword });
+
+    return {
+      status: HttpStatus.OK,
+      message: 'Password changed successfully',
+    };
+  }
 
   @Post('send-otp')
   async sendOtp(@Body() sendOtpDto: SendOtpDto) {
@@ -176,11 +196,9 @@ export class AuthController {
       verifyOtpDto.countryCode,
       verifyOtpDto.number,
     );
-
     if (!user) {
       throw new BadRequestException('User not found');
     }
-
     const isOtpValid = await this.authService.verifyOtp(user, verifyOtpDto.otp);
     if (!isOtpValid) {
       throw new BadRequestException('Invalid OTP');
@@ -196,24 +214,84 @@ export class AuthController {
     };
   }
 
-  @Post('/verify-email')
-  async verifyEmail(@Body() verifyEmailDto: VerifyEmailDto) {
-    const user = await this.userService.findUserByEmail(verifyEmailDto.email);
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-    const isOtpValid = await this.authService.verifyOtp(
-      user,
-      verifyEmailDto.otp,
+  @Post('resend-otp')
+  async resendOtp(@Body() resendOtpDto: ResendOtpDto) {
+    const user = await this.userService.findUserByPhone(
+      resendOtpDto.countryCode,
+      resendOtpDto.number,
     );
-    if (!isOtpValid) {
-      throw new BadRequestException('Invalid OTP');
+
+    if (!user) {
+      throw new BadRequestException("User doesn't exist");
     }
-    // Update user verification status
-    await this.userService.updateUserById(user._id, { isEmailVerified: true });
+
+    const otpValidityPeriod = 5 * 60 * 1000; 
+    const currentTime = new Date().getTime();
+    const otpCreationTime = new Date(user.otp.createdAt).getTime();
+    
+    if (currentTime - otpCreationTime < otpValidityPeriod) {
+      throw new BadRequestException('OTP is still valid, please try after some time');
+    }
+
+    const otp = await this.authService.generateOtp();
+    await this.authService.sendOTPOnPhone(otp, user.number);
+    await this.userService.updateUserByIdforOtp(user._id, {
+      otp: { value: otp, createdAt: new Date() },
+    });
+
     return {
-      status: HttpStatus.CREATED,
-      message: 'Email verified successfully',
+      statusCode: HttpStatus.OK,
+      message: 'OTP resent successfully',
+      data: {
+        user,
+        token: await this.authService.generateToken(user),
+      },
     };
   }
+
+  @Post('send-email-otp')
+  async sendEmailOtp(@Body() sendEmailOtpDto: SendEmailOtpDto) {
+    const user = await this.userService.findUserByEmail(sendEmailOtpDto.email);
+  
+    if (user) {
+      const otp = await this.authService.generateOtp();
+      await this.authService.sendOTPOnEmail(otp, user.email);
+      await this.userService.updateUserByIdforOtp(user._id, {
+        otp: { value: otp, createdAt: new Date() },
+      });
+  
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'OTP sent successfully to your email',
+        data: {
+          user,
+          token: await this.authService.generateToken(user),
+        },
+      };
+    } else {
+      throw new BadRequestException("User doesn't exist");
+    }
+  }
+  
+  @Post('verify-email-otp')
+  async verifyEmailOtp(@Body() verifyEmailOtpDto: VerifyEmailOtpDto) {
+  const user = await this.userService.findUserByEmail(verifyEmailOtpDto.email);
+  if (!user) {
+    throw new BadRequestException('User not found');
+  }
+  const isOtpValid = await this.authService.verifyOtp(user, verifyEmailOtpDto.otp);
+  if (!isOtpValid) {
+    throw new BadRequestException('Invalid OTP');
+  }
+
+  return {
+    status: HttpStatus.OK,
+    message: 'OTP verified successfully',
+    data: {
+      user,
+      token: await this.authService.generateToken(user),
+    },
+  };
+  }
+
 }
