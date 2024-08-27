@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.schema';
 import { Model, Types } from 'mongoose';
-import { CreateUserDto } from './dto/user.dto';
+import { CreateUserDto, CreateUserDtoForPhone } from './dto/user.dto';
 import { LoginUserDto } from 'src/auth/dto/auth-dto';
 import { UpdateUserDto } from './dto/user.dto';
 import * as bcrypt from 'bcrypt';
@@ -26,6 +26,9 @@ export class UserService {
 
   async createUser(createUserDto: CreateUserDto) {
     return await this.userModel.create(createUserDto);
+  }
+  async createUserByPhoneNumber(createUserDtoForPhone:CreateUserDtoForPhone){
+    return await this.userModel.create(createUserDtoForPhone);
   }
 
   async findUserByEmail(email: string) {

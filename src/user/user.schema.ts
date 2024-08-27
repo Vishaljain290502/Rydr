@@ -97,10 +97,10 @@ export class UserDocument {
   @Prop()
   dob: Date;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ unique: true })
   email: string;
 
-  @Prop({ required: true })
+  @Prop()
   password: string;
 
   @Prop()
@@ -111,6 +111,8 @@ export class UserDocument {
 
   @Prop({ required: true })
   number: string;
+
+  
 
   @Prop({ required: true, enum: ['user', 'admin'], default: 'user' })
   role: string;

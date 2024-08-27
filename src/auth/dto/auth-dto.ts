@@ -1,6 +1,6 @@
 import { Type } from "class-transformer";
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, Length, MaxLength, Min, MinLength, ValidateNested } from "class-validator";
+import { IsEmail, IsNotEmpty, IsNumber, IsString, Length, MaxLength, Min, MinLength, ValidateNested } from "class-validator";
 
 
 export class LoginUserDto {
@@ -105,9 +105,6 @@ export class forgotPasswordDto {
   }
   
   export class SendOtpDto {
-    email(email: any) {
-      throw new Error('Method not implemented.');
-    }
     @ApiProperty({
       description:"CountryCode",
       default:"+91",
@@ -202,4 +199,22 @@ export class ResendOtpDto {
   @IsString()
   @IsNotEmpty()
   number: string;
+}
+
+export class GoogleLoginDto{
+  @ApiProperty({
+    description:"login"
+  }) 
+  @IsString()
+  name:string
+  @IsNumber()
+  phoneNumber:Number
+  @IsString()
+  otp:string
+  @IsEmail()
+  email:string
+  @IsString()
+  password:string
+  @IsString()
+  googInfo:string
 }

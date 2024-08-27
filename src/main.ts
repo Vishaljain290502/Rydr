@@ -9,8 +9,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new GlobalExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe());
-
-  // app.use(new AuthMiddleware().use);
+  // app.setGlobalPrefix('/api/v1');
+  // app.use(new AuthMiddleware().use);ss
 
   const config = new DocumentBuilder()
   .setTitle('Rider')

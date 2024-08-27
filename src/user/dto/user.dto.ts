@@ -67,51 +67,54 @@ export class FetchUserDto {
   readonly id: string;
 }
 
+export class CreateUserDtoForPhone {
+  @ApiProperty({
+    description:"otp"
+  })
+  @IsString()
+  otp: {
+    value: string;
+    createdAt: Date;
+  };
+  @IsString()
+  countryCode:string;
+
+  @IsString()
+  number:string;
+}
+
 export class CreateUserDto {
   @ApiProperty({
     description:"firstName",
     default:"rider",
-    required:true
   })
   @IsString()
-  @IsNotEmpty()
   firstName: string;
 
   @ApiProperty({
     description:"lastName",
     default:"Ride",
-    required:true
   })
   @IsString()
-  @IsNotEmpty()
   lastName: string;
 
   @ApiProperty({
     description:"Email",
     default:"rider@gmail.com",
-    required:true
   })
   @IsEmail()
-  @IsNotEmpty()
   email: string;
 
-  // @IsString()
-  // @IsNotEmpty()
-  // mobileNumber: string;
 
   @ApiProperty({
     description:"CountryCode",
-    required:true
   })
-  @IsNotEmpty()
   @IsString()
   countryCode: string;
 
   @ApiProperty({
     description:"number",
-    required:true
   })
-  @IsNotEmpty()
   @IsString()
   number: string;
 
@@ -122,7 +125,6 @@ export class CreateUserDto {
     required:true
   })
   @IsString()
-  @IsNotEmpty()
   @MinLength(6)
   @MaxLength(20)
   password: string;

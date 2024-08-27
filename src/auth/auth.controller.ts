@@ -31,6 +31,7 @@ import { Types } from 'mongoose';
 @ApiSecurity('basic')
 @Controller('auth')
 export class AuthController {
+  googleAuthService: any;
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
@@ -176,17 +177,30 @@ export class AuthController {
       await this.userService.updateUserByIdforOtp(user._id, {
         otp: { value: otp, createdAt: new Date() },
       });
-
+      delete user.otp
       return {
         statusCode: HttpStatus.OK,
         message: 'OTP sent successfully',
-        data: {
-          user,
-          token: await this.authService.generateToken(user),
-        },
+        data:user
       };
     } else {
-      throw new BadRequestException("User doesn't exist");
+      const otp = await this.authService.generateOtp();
+      await this.authService.sendOTPOnPhone(otp, sendOtpDto.number);
+      const user = await this.userService.createUserByPhoneNumber({
+        countryCode:sendOtpDto.countryCode,
+        number: sendOtpDto.number,
+        otp: {
+          value: otp,
+          createdAt: new Date()
+        },
+      });
+
+      delete user.otp
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'OTP sent successfully',
+        data:user
+      };
     }
   }
 
@@ -293,5 +307,7 @@ export class AuthController {
     },
   };
   }
+
+  
 
 }
