@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Trip } from './trip.schema';
+import { Trip } from './ride.schema';
 
 @Injectable()
 export class TripService {
@@ -12,7 +12,6 @@ export class TripService {
     return await newTrip.save(); 
   }
   
-
   async joinTrip(tripId: string, userId: Types.ObjectId): Promise<Trip> {
     const trip = await this.tripModel.findById(tripId);
     if (!trip) {

@@ -1,12 +1,15 @@
 import { Controller, Post, Get, Patch, Delete, Param, Body, Query, Req, UseGuards } from '@nestjs/common';
-import { TripService } from './trip.service';
+import { TripService } from './ride.service';
 import { CreateTripDto } from './dto/create.trip.dto';
 import { UpdateTripDto } from './dto/update.trip.dto';
 import { AuthGuard, GetUserId } from '../guard/authGuard'; 
 import { Auth } from '../guard/authGuard';
 import { Request } from 'express';
 import { Types } from 'mongoose';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('trips')
+@ApiSecurity('basic')
 @Controller('trips')
 export class TripController {
   constructor(private readonly tripService: TripService) {}

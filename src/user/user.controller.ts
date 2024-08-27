@@ -2,16 +2,20 @@ import { Body, Controller, Get, Param, Patch, Post, UseGuards, UseInterceptors }
 import { UserService } from './user.service';
 import { User } from './user.schema'; // Import the DTO
 import { Types } from 'mongoose';
-import { UpdateUserDto } from './dto/update.user.dto';
-import { LocationDto } from './dto/location.dto';
-import { VerificationIdDto } from './dto/update.verification.dto';
+import { UpdateUserDto } from './dto/user.dto';
+import { LocationDto } from './dto/user.dto';
+import { VerificationIdDto } from './dto/user.dto';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UploadedFiles } from '@nestjs/common';
-import { CreateVehicleVerificationDto } from './dto/vehicle.verification.dto';
+import { CreateVehicleVerificationDto } from './dto/user.dto';
 import { Auth, GetUserId } from 'src/guard/authGuard';
+import { Roles } from 'src/guard/rolesGuard';
+import { ApiSecurity, ApiTags } from '@nestjs/swagger';
 
 
 @Auth()
+@ApiTags('users')
+@ApiSecurity('basic')
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -29,10 +33,10 @@ export class UserController {
 
   @Patch('updateUserById/:id')
   async updateUserById(
-    @Param('id') id: Types.ObjectId,
+    @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return this.userService.updateUserById(id, updateUserDto);
+    return await this.userService.updateUserById(Types.ObjectId.createFromHexString(id), updateUserDto);
   }
   @Patch('updateLocation/:id')
   async updateLocation(

@@ -2,19 +2,23 @@ import { Injectable, InternalServerErrorException, NotFoundException } from '@ne
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './user.schema';
 import { Model, Types } from 'mongoose';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, CreateUserDtoForPhone } from './dto/user.dto';
 import { LoginUserDto } from 'src/auth/dto/auth-dto';
-import { UpdateUserDto } from './dto/update.user.dto';
+import { UpdateUserDto } from './dto/user.dto';
 import * as bcrypt from 'bcrypt';
-import { LocationDto } from './dto/location.dto';
-import { VerificationIdDto } from '../user/dto/update.verification.dto';
+import { LocationDto } from './dto/user.dto';
+import { VerificationIdDto } from '../user/dto/user.dto';
 import { CloudinaryService } from 'src/services/cloudinaruy-services';
-import { CreateVehicleVerificationDto } from './dto/vehicle.verification.dto';
+import { CreateVehicleVerificationDto } from './dto/user.dto';
 
 
 
 @Injectable()
 export class UserService {
+  async findUserById(userId: Types.ObjectId): Promise<UserDocument | null> {
+    return await this.userModel.findById(userId).exec();
+  }
+  
   constructor(
     @InjectModel('User') private readonly userModel: Model<UserDocument>,
     private cloudinaryService: CloudinaryService
@@ -22,6 +26,9 @@ export class UserService {
 
   async createUser(createUserDto: CreateUserDto) {
     return await this.userModel.create(createUserDto);
+  }
+  async createUserByPhoneNumber(createUserDtoForPhone:CreateUserDtoForPhone){
+    return await this.userModel.create(createUserDtoForPhone);
   }
 
   async findUserByEmail(email: string) {

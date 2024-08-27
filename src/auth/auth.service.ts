@@ -7,6 +7,7 @@ import { User, UserDocument } from 'src/user/user.schema';
 import { UserService } from 'src/user/user.service';
 import * as crypto from 'crypto';
 import { CloudinaryService } from 'src/services/cloudinaruy-services';
+import { MailerService } from 'src/helper/mailer.service';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     @InjectModel('User') private readonly userModel: Model<User>,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly mailerService : MailerService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
@@ -88,7 +90,17 @@ export class AuthService {
     return crypto.randomInt(100000, 999999).toString();
   }
 
+  async comparePassword(plainTextPassword: string, hashedPassword: string): Promise<boolean> {
+    return await bcrypt.compare(plainTextPassword, hashedPassword);
+  }
 
+
+  async sendOTPOnEmail(otp: string, email: string): Promise<void> {
+    await this.mailerService.sendMail({
+      email, 
+      otp,   
+    });
+  }
 
   // private readonly FIXED_OTP = '123456';
   // async verifyOtp(user: any, otp: string): Promise<boolean> {

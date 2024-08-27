@@ -7,7 +7,12 @@ export const TripSchema = new Schema({
   endDate: { type: Date, required: true },
   vehicleType: { type: String, required: true },
   seatsAvailable: { type: Number, required: true },
-  participants: [{ type: Schema.Types.ObjectId, ref: 'User' }]
+  participants: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  status: {
+    type: String,
+    enum: ["scheduled", "rescheduled", "canceled" , "completed"],
+    default: "scheduled",
+  },
 });
 
 export interface Trip extends Document {

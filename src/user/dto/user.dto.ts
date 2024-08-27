@@ -1,12 +1,25 @@
-import { IsString, IsBoolean, IsDate, IsOptional, IsArray, ArrayNotEmpty } from 'class-validator';
-
+import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
+import { IsString, IsBoolean, IsDate, IsOptional, IsArray, ArrayNotEmpty, IsMongoId, ArrayMinSize, IsNumber, ValidateNested } from 'class-validator';
+import {  IsEmail, IsNotEmpty, MinLength, MaxLength } from 'class-validator';
 export class UserDto {
+  @ApiProperty({
+    description:"name",
+    default:"Rider"
+  })
   @IsString()
   readonly name: string;
 
+  @ApiProperty({
+    description:"dob",
+  })
   @IsDate()
   readonly dob: Date;
 
+  @ApiProperty({
+    description:"email",
+    default:"rider@gmail.com"
+  })
   @IsString()
   readonly email: string;
 
@@ -45,3 +58,244 @@ export class UserDto {
     coordinates: [number, number];
   };
 }
+
+export class FetchUserDto {
+  @ApiProperty({
+    description:"UserId",
+  })
+  @IsMongoId()
+  readonly id: string;
+}
+
+export class CreateUserDtoForPhone {
+  @ApiProperty({
+    description:"otp"
+  })
+  @IsString()
+  otp: {
+    value: string;
+    createdAt: Date;
+  };
+  @IsString()
+  countryCode:string;
+
+  @IsString()
+  number:string;
+}
+
+export class CreateUserDto {
+  @ApiProperty({
+    description:"firstName",
+    default:"rider",
+  })
+  @IsString()
+  firstName: string;
+
+  @ApiProperty({
+    description:"lastName",
+    default:"Ride",
+  })
+  @IsString()
+  lastName: string;
+
+  @ApiProperty({
+    description:"Email",
+    default:"rider@gmail.com",
+  })
+  @IsEmail()
+  email: string;
+
+
+  @ApiProperty({
+    description:"CountryCode",
+  })
+  @IsString()
+  countryCode: string;
+
+  @ApiProperty({
+    description:"number",
+  })
+  @IsString()
+  number: string;
+
+  @ApiProperty({
+    description:"password",
+    minLength:6,
+    maxLength:18,
+    required:true
+  })
+  @IsString()
+  @MinLength(6)
+  @MaxLength(20)
+  password: string;
+}
+
+export class LocationDto {
+  @ApiProperty({
+    description:"location"
+  })
+  @IsString()
+  type: string;
+
+  @IsArray()
+  @ArrayMinSize(2)
+  @IsNumber({}, { each: true })
+  coordinates: [number, number];
+}
+
+export class UpdateUserDto {
+  @ApiProperty({
+    description:"FirstName",
+    default:"rider"
+  })
+  @IsOptional()
+  @IsString()
+   firstName?: string;
+
+   @ApiProperty({
+    description:"latsName",
+    default:"ride"
+   })
+   @IsOptional()
+   @IsString()
+   lastName?:string;
+
+   @ApiProperty({
+    description:"password",
+    maxLength:18,
+    minLength:6,
+    default:"2133434546"
+   })
+   @IsOptional()
+   @IsString()
+   password?:string;
+
+   @ApiProperty({
+    description:"OTP",
+    minLength:6,
+    maxLength:6,
+    default:"123456"
+   })
+   @IsOptional()
+   @IsString()
+   otp?:string;
+
+
+   @ApiProperty({
+    description:"Date of birth",
+   })
+  @IsOptional()
+  @IsDate()
+   dob?: Date;
+
+  @ApiProperty({
+    description:"Email",
+    default:"Rider@gmail.com"
+  })
+  @IsOptional()
+  @IsString()
+   email?: string;
+
+  
+  @IsOptional()
+  @IsString()
+   address?: string;
+
+  //  @IsOptional()
+  // @ValidateNested()
+  // @Type(() => LocationDto)
+  // location?: LocationDto;
+}
+
+class IdDetailsDto {
+  @ApiProperty({
+    description:"front"
+  })
+  @IsOptional()
+  @IsString()
+  front?: string;
+
+  @ApiProperty({
+    description:"Back"
+  })
+  @IsOptional()
+  @IsString()
+  back?: string;
+
+  @ApiProperty({
+    description:"frontPublicId"
+  })
+  @IsOptional()
+  @IsString()
+  frontPublicId?: string;
+
+  @ApiProperty({
+    description:"backPublicId"
+  })
+  @IsOptional()
+  @IsString()
+  backPublicId?: string;
+}
+
+export class CreateVehicleVerificationDto {
+
+  @ApiProperty({
+    description:"VehicleType",
+    type:String
+  })
+  @IsString()
+  vehicleType:string;
+
+  @ApiProperty({
+    description:"RegistrationCertificateNumber",
+    type:String,
+  })
+  @IsString()
+  registrationCertificateNumber:string;
+
+//   @IsString()
+//   drivingLicense:string;
+  @ApiProperty({
+    description:"VehicleNumber",
+    type:String
+  })
+  @IsString()
+  vehicleNumber:string;
+
+  @ApiProperty({
+    description:"Vehicle Owner Name",
+    type:String
+  })
+  @IsString()
+  vehicleOwnerName:string;
+
+  @ApiProperty({
+    description:"Insuarance Number"
+  })
+  @IsString()
+  insuranceNumber:string;
+}
+
+export class VerificationIdDto {
+  @ApiProperty({
+    description:"Verification Details"
+  })
+  @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => IdDetailsDto)
+  id?: IdDetailsDto;
+
+  @IsOptional()
+  @IsString()
+  photo?: string;
+
+  @IsOptional()
+  @IsString()
+  photoPublicId?: string;
+}
+
+
