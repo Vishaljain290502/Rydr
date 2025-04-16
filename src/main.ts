@@ -9,8 +9,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new GlobalExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe());
-  // app.setGlobalPrefix('/api/v1');
-  // app.use(new AuthMiddleware().use);ss
+  app.setGlobalPrefix('/api/v1');
+  // app.use(new AuthMiddleware().use);
 
   const config = new DocumentBuilder()
   .setTitle('Rider')
@@ -21,7 +21,7 @@ async function bootstrap() {
    const document = SwaggerModule.createDocument(app, config)
    SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000);
+  await app.listen(4000);
 
 
 }

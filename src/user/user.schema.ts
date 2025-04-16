@@ -1,122 +1,94 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, HydratedDocument } from 'mongoose';
+import { Document, HydratedDocument, Types } from 'mongoose';
+import { Vehicle, VehicleSchema } from '../vehicle/vehicle.schema';
 
-// LocationDocument Schema
-@Schema()
+
+// 📍 Location Schema
+@Schema({ _id: false })
 export class LocationDocument {
-  @Prop({
-    type: String,
-    enum: ["Point"],
-    required: true,
-    default: "Point",
-  })
+  @Prop({ type: String, enum: ["Point"], required: true, default: "Point" })
   type: string;
 
-  @Prop({
-    type: [Number],
-    required: true,
-    default: [0, 0],
-  })
+  @Prop({ type: [Number], required: true, default: [0, 0] })
   coordinates: [number, number];
 }
 
 export const LocationSchema = SchemaFactory.createForClass(LocationDocument);
 
-// VehicleVerification Schema
-@Schema()
-export class VehicleVerification {
-  @Prop({ required: true })
-  vehicleNumber: string;
-
-  @Prop({ required: true })
-  registrationCertificateNumber: string;
-
-  @Prop({ required: true })
-  insuranceNumber: string;
-
-  @Prop()
-  registrationCertificateUrl: string;
-
-  @Prop()
-  insuranceUrl: string;
-
-  @Prop()
-  vehiclePhotoUrl: string;
-
-  @Prop()
-  vehicleOwnerName: string;
-
-  @Prop()
-  drivingLicenseUrl: string;
-
-  @Prop()
-  vehicleType: string;
-}
-
-export const VehicleVerificationSchema = SchemaFactory.createForClass(VehicleVerification);
-
-// VerificationId Schema
-@Schema()
-export class VerificationId {
-  @Prop({ required: true })
-  type: string;
-
-  @Prop({
-    type: {
-      front: { type: String, default: "" },
-      back: { type: String, default: "" },
-      frontPublicId: { type: String, default: "" },
-      backPublicId: { type: String, default: "" },
-    },
-  })
-  id: {
-    front: string;
-    back: string;
-    frontPublicId: string;
-    backPublicId: string;
-  };
+// 🔐 Token Schema
+@Schema({ _id: false })
+export class TokenSchema {
+  @Prop({ default: "" })
+  refresh_token: string;
 
   @Prop({ default: "" })
-  photo: string;
+  access_token: string;
 
-  @Prop({ default: "" })
-  photoPublicId: string;
+  @Prop({ default: 0 })
+  expires_in: number;
 }
 
-export const VerificationIdSchema = SchemaFactory.createForClass(VerificationId);
+export const TokenSchemaModel = SchemaFactory.createForClass(TokenSchema);
 
-// UserDocument Schema
-@Schema()
+// 📊 Analytics Schema
+@Schema({ _id: false })
+export class AnalyticsSchema {
+  @Prop({ default: 0 })
+  totalRides: number;
+
+  @Prop({ default: 0 })
+  totalSavings: number;
+
+  @Prop({ default: 0 })
+  averageRating: number;
+}
+
+export const AnalyticsSchemaModel = SchemaFactory.createForClass(AnalyticsSchema);
+
+// 📞 Emergency Contact Schema
+@Schema({ _id: true })
+export class EmergencyContact {
+  @Prop({ required: true })
+  name: string;
+
+  @Prop({ required: true })
+  relation: string;
+
+  @Prop({ required: true })
+  phoneNumber: string;
+}
+
+export const EmergencyContactSchema = SchemaFactory.createForClass(EmergencyContact);
+
+// 👤 User Schema
+@Schema({ timestamps: true })
 export class UserDocument {
-  @Prop()
+  @Prop({ required: true })
   firstName: string;
 
-  @Prop()
+  @Prop({ required: true })
   lastName: string;
 
   @Prop()
   dob: Date;
 
-  @Prop({ unique: true })
+  @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop()
+  @Prop({ required: true })
   password: string;
 
-  @Prop()
-  token: string;
+  @Prop({ type: TokenSchemaModel, default: () => ({}) }) 
+  token: TokenSchema;
 
   @Prop({ required: true })
   countryCode: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   number: string;
-
-  
 
   @Prop({ required: true, enum: ['user', 'admin'], default: 'user' })
   role: string;
-
 
   @Prop({ default: false })
   isPhoneVerified: boolean;
@@ -124,15 +96,13 @@ export class UserDocument {
   @Prop({ default: false })
   isEmailVerified: boolean;
 
-  @Prop()
-  resetTokenExpiration: Date;
+  @Prop({ default: false })
+  isDeleted: boolean;
 
-  @Prop({
-    type: {
-      value: { type: String, required: true },
-      createdAt: { type: Date, required: true }
-    }
-  })
+  @Prop({ default: false })
+  isBlocked: boolean;
+
+  @Prop({ type: { value: { type: String, required: true }, createdAt: { type: Date, default: Date.now } } })
   otp: {
     value: string;
     createdAt: Date;
@@ -144,14 +114,32 @@ export class UserDocument {
   @Prop({ type: LocationSchema })
   location: LocationDocument;
 
-  @Prop({ type: VerificationIdSchema })
-  verificationId: VerificationId;
+  @Prop({ type: [EmergencyContactSchema], default: [] })  
+  emergencyContacts: EmergencyContact[];
 
-  @Prop({ type: VehicleVerificationSchema })
-  vehicleVerification?: VehicleVerification;
+  @Prop({ type: AnalyticsSchemaModel, default: () => ({}) }) 
+  analytics: AnalyticsSchema;
+
+  @Prop({ default: 0 })
+  profileCompletion: number;
+
+  @Prop({ default: "" })
+  profileImage: string;
+
+  @Prop({ default: "" })
+  notificationToken: string;
+
+  @Prop({ type: [VehicleSchema], default: [] })  
+  vehicles: Vehicle[];
 }
 
 export type User = HydratedDocument<UserDocument>;
+export const UserSchema = SchemaFactory.createForClass(UserDocument);
 
-export const userSchema = SchemaFactory.createForClass(UserDocument);
-
+UserSchema.set('toJSON', {
+  virtuals: true,
+  versionKey: false,
+  transform: function (doc, ret) {
+    delete ret._id;
+  },
+});

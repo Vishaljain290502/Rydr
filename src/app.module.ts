@@ -7,9 +7,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { HelperModule } from './helper/helper.module';
 
 import { TripModule } from './trip/ride.module';
+import { VehicleModule } from './vehicle/vehicle.module';
+import { BrandModule } from './brand/brand.module';
 
 @Module({
-  imports: [UserModule, TripModule, AuthModule,MongooseModule.forRoot('mongodb+srv://vishaljaurasoft:uWkjdnz06DQ2zDKg@cluster0.lcqe8e7.mongodb.net/rydr?retryWrites=true&w=majority&appName=Cluster0'), HelperModule, TripModule],
+  imports: [UserModule, TripModule, AuthModule,MongooseModule.forRoot('mongodb+srv://vishaljaurasoft:uWkjdnz06DQ2zDKg@cluster0.lcqe8e7.mongodb.net/rydr?retryWrites=true&w=majority&appName=Cluster0'), HelperModule, TripModule, VehicleModule, BrandModule],
   controllers: [AppController],
   providers: [AppService],
 })

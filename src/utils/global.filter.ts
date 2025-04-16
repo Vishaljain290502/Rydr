@@ -5,7 +5,7 @@ import { BaseExceptionFilter } from '@nestjs/core';
 export class GlobalExceptionsFilter extends BaseExceptionFilter {
   private readonly logger = new Logger(GlobalExceptionsFilter.name);
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse();
     const request = ctx.getRequest();
@@ -18,7 +18,8 @@ export class GlobalExceptionsFilter extends BaseExceptionFilter {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
-      errorMessage: message,
+      message: exception.response.message || 'Internal server error',
+
     });
   }
 }

@@ -19,13 +19,6 @@ export class AuthService {
     private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-
-
-
-  // async generateToken(user: any): Promise<string> {
-  //   const payload = { userId: user._id, email: user.email };
-  //   return jwt.sign(payload, process.env.JWT_SECRET_KEY, { expiresIn: '1h' });
-  // }
   async generateToken(user: User): Promise<string> {
     const payload = { email: user.email, sub: user._id };
     return this.jwtService.sign(payload);
@@ -61,29 +54,6 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired OTP');
     }
   }
-
-  // async validateToken(token: string): Promise<User | null> {
-  //   try {
-  //     const payload = this.jwtService.verify(token);
-  //     console.log("Decoded JWT payload:", payload);
-      
-  //     if (!payload || !payload.userId) {
-  //       console.log("Invalid payload or missing userId");
-  //       return null;
-  //     }
-  
-  //     const user = await this.userModel.findById(payload.userId).exec();
-  //     if (!user) {
-  //       console.log("User not found for given userId:", payload.userId);
-  //       return null;
-  //     }
-  
-  //     return user;
-  //   } catch (error) {
-  //     console.error("Error in validateToken:", error);
-  //     return null;
-  //   }
-  // }
   
 
   async generateOtp(): Promise<string> {
@@ -109,9 +79,11 @@ export class AuthService {
 
   serializeUser(user:User){
     return {
-      name: `${user.firstName} ${user.lastName}`,
+      firstName:user.firstName,
+      lastName:user.lastName,
       email:user.email,
-      token:user.token
+      token:user.token,
+      id:user._id
     }
   }
 }

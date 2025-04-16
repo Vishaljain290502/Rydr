@@ -23,8 +23,7 @@ export class LoginUserDto {
     @MaxLength(18)
     @IsNotEmpty()
     password:string;
-}
-
+  }
 export class GenerateOtpDto {
     @ApiProperty({
       description:"Email",
@@ -37,26 +36,34 @@ export class GenerateOtpDto {
 }
 
 export class ResetPasswordDto {
-    @ApiProperty({
-      description:"OTP",
-      minLength:6,
-      maxLength:6,
-      default:"123456"
-    })
-    @IsString()
-    otp: string;
-  
-    @ApiProperty({
-      minLength:6,
-      maxLength:18,
-      description:"Password",
-      default:"123456789"
-    })
-    @IsString()
-    @MinLength(6)
-    @MaxLength(20)
-    password: string;
-  }
+  @ApiProperty({
+    description: "Email of the user",
+    example: "user@example.com",
+  })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({
+    description: "OTP",
+    minLength: 6,
+    maxLength: 6,
+    example: "123456",
+  })
+  @IsString()
+  @Length(6, 6)
+  otp: string;
+
+  @ApiProperty({
+    description: "New password",
+    minLength: 6,
+    maxLength: 18,
+    example: "StrongP@ss123",
+  })
+  @IsString()
+  @MinLength(6)
+  @MaxLength(20)
+  password: string;
+}
 
   
 export class forgotPasswordDto {

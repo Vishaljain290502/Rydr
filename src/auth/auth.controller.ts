@@ -57,79 +57,101 @@ export class AuthController {
       message: 'User registered successfully',
     };
   }
-  @Post('/login')
-  async login(@Body() loginUserDto: LoginUserDto) {
-    const user = await this.userService.findUserByEmail(loginUserDto.email);
-    if (!user) {
-      throw new BadRequestException('User Email not Found');
-    }
-    if (!this.authService.matchPassword(loginUserDto.password, user.password)) {
-      throw new BadRequestException('Password Not Matched');
-    }
-    const token = await this.authService.generateToken(user);
-    return {
-      status: HttpStatus.OK,
-      user: this.authService.serializeUser(user),
-      token,
-      message: 'Login successful',
+
+
+    @Post('/login')
+    async login(@Body() loginUserDto: LoginUserDto) {
+      const user = await this.userService.findUserByEmail(loginUserDto.email);
+      
+      if (!user) {
+        throw new BadRequestException('User Email not Found');
+      }
+      
+      if (!this.authService.matchPassword(loginUserDto.password, user.password)) {
+        throw new BadRequestException('Password Not Matched');
+      }
+      
+      const token = await this.authService.generateToken(user);
+
+    // ✅ Correctly update the access_token field
+    user.token = {
+      ...user.token,  
+      access_token: token,
     };
-  }
-  @Post('forgot-password')
-  async forgotPassword(
-    @Body() forgotPasswordDto: forgotPasswordDto,
-  ): Promise<any> {
-    const user = await this.userService.findUserByEmail(
-      forgotPasswordDto.email,
-    );
-    if (!user) {
-      throw new BadRequestException('User not found');
+
+    await user.save();
+
+
+      // Convert user to object and remove password before sending response
+      const userObj = user.toObject();
+      delete userObj.password;
+
+      return {
+        status: HttpStatus.OK,
+        data: userObj,
+        message: 'Login successful',
+      };
     }
 
-    // Generate a 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store OTP in user model or a separate OTP storage (recommended)
-    user.otp = { value: otp, createdAt: new Date() };
-    await this.userService.updateUserById(user._id, { otp });
 
-    // Send OTP to the user
-    await this.mailerService.sendMail({ email: user.email, otp });
-
-    return {
-      status: HttpStatus.CREATED,
-      message: 'OTP sent successfully',
-      Otp: user.otp,
-    };
-  }
-
-  @Post('reset-password')
-  async resetPassword(
-    @Body() resetPasswordDto: ResetPasswordDto,
-  ): Promise<any> {
-    const { otp, password } = resetPasswordDto;
-
-    // Ensure that the user is identified correctly
-    const user = await this.userService.findUserByOtp(otp); // Assuming `findUserByOtp` is a method that finds a user by OTP
-    if (!user) {
-      throw new BadRequestException('Invalid OTP');
-    }
-
-    if (user.otp.value !== otp) {
-      throw new BadRequestException('Invalid OTP');
+    @Post('forgot-password')
+    async forgotPassword(@Body() forgotPasswordDto: forgotPasswordDto): Promise<any> {
+      const user = await this.userService.findUserByEmail(forgotPasswordDto.email);
+      
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+    
+      // Generate a 6-digit OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+      // Store OTP in user model
+      user.otp = { value: otp, createdAt: new Date() };
+      
+      // Save OTP in the database
+      await user.save();
+    
+      // Send OTP to the user via email
+      await this.mailerService.sendMail({ email: user.email, otp });
+    
+      return {
+        status: HttpStatus.CREATED,
+        message: 'OTP sent successfully',
+        data: user,
+      };
     }
     
 
-    // Update the user's password and clear the OTP
-    await this.userService.updateUserById(user._id, {
-      password: this.authService.hashedPassword(password),
-      otp: null,
-    });
-
-    return {
-      status: HttpStatus.CREATED,
-      message: 'Password reset successfully',
-    };
-  }
+    @Post('reset-password')
+    async resetPassword(
+      @Body() resetPasswordDto: ResetPasswordDto,
+    ): Promise<any> {
+      const { email, otp, password } = resetPasswordDto;
+    
+      // Find user by email
+      const user = await this.userService.findUserByEmail(email);
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+    
+      // Check if OTP exists and matches
+      if (!user.otp || user.otp.value !== otp) {
+        throw new BadRequestException('Invalid OTP');
+      }
+    
+      // Update password and clear OTP
+      await this.userService.updateUserById(user._id, {
+        password: this.authService.hashedPassword(password),
+        otp: null, // Clear OTP after successful reset
+      });
+    
+      return {
+        status: HttpStatus.CREATED,
+        message: 'Password reset successfully',
+      };
+    }
+    
 
   @Post('change-password')
   @Auth() 
