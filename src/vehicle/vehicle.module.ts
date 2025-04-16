@@ -7,9 +7,11 @@ import { HelperModule } from '../helper/helper.module';
 import { UserModule } from '../user/user.module';
 import { BrandModule } from '../brand/brand.module';
 import { UserSchema } from '../user/user.schema';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Vehicle', schema: VehicleSchema },{name:"User",schema:UserSchema}]),HelperModule,UserModule,BrandModule],
+  imports: [
+    AuthModule,MongooseModule.forFeature([{ name: 'Vehicle', schema: VehicleSchema },{name:"User",schema:UserSchema}]),HelperModule,UserModule,BrandModule],
   controllers: [VehicleController],
   providers: [VehicleService],
   exports: [VehicleService],

@@ -24,16 +24,11 @@ class LocationDto {
 }
 
 export class CreateTripDto {
-  @ApiProperty({ description: 'User ID of the trip host', example: '60c72b2f9b1e8b002b5f9a3d' })
-  @IsNotEmpty()
-  @IsMongoId()
-  readonly host: string;
-
   @ApiProperty({ description: 'Start location of the trip' })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => LocationDto)
-  readonly startLocation: LocationDto;
+  readonly source: LocationDto;
 
   @ApiProperty({ description: 'Destination of the trip' })
   @IsNotEmpty()
@@ -44,12 +39,12 @@ export class CreateTripDto {
   @ApiProperty({ description: 'Start date of the trip', example: '2024-06-01T00:00:00.000Z' })
   @IsNotEmpty()
   @IsDateString()
-  readonly startDate: string;
+  readonly startDateTime: string;
 
   @ApiProperty({ description: 'End date of the trip', example: '2024-06-05T00:00:00.000Z' })
   @IsNotEmpty()
   @IsDateString()
-  readonly endDate: string;
+  readonly endDateTime: string;
 
   @ApiProperty({ description: 'Vehicle ID used for the trip', example: '60c72b2f9b1e8b002b5f9a3e' })
   @IsNotEmpty()
@@ -66,11 +61,6 @@ export class CreateTripDto {
   @IsOptional()
   @IsMongoId({ each: true })
   readonly participants?: string[];
-
-  @ApiProperty({ description: 'Trip status', enum: ["scheduled", "rescheduled", "canceled", "completed"], default: "scheduled" })
-  @IsOptional()
-  @IsString()
-  readonly status?: string;
 }
 
 export class UpdateTripDto {

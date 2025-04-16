@@ -1,6 +1,7 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsOptional, IsMongoId } from 'class-validator';
 import { Types } from 'mongoose';
+import { FilterDto } from 'src/utils/filter.dto';
 
 export class CreateModelDto {
   @ApiProperty({
@@ -39,3 +40,5 @@ export class UpdateModelDto extends PartialType(CreateModelDto) {
   @IsOptional()
   brand?: string;
 }
+
+export class GetModelsDto extends FilterDto{}

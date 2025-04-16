@@ -2,9 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Brand, BrandDocument } from './brand.schema';
-import { CreateBrandDto,UpdateBrandDto } from './dto/brand.dto';
+import { CreateBrandDto,GetBrandsDto,UpdateBrandDto } from './dto/brand.dto';
 import { Model as ModelEntity, ModelDocument } from './model.schema';
-import { CreateModelDto,UpdateModelDto } from './dto/model.dto';
+import { CreateModelDto,GetModelsDto,UpdateModelDto } from './dto/model.dto';
 
 
 @Injectable()
@@ -16,29 +16,10 @@ export class BrandService {
     return this.brandModel.create(createBrandDto);
   }
 
-  async findAllBrand(page: number, limit: number): Promise<{ brands: Brand[], pagination: { page: number, limit: number, totalBrands: number, totalPages: number } }> {
-    // Calculate the skip value for pagination
-    const skip = (page - 1) * limit;
-  
-    // Get the total number of brands
-    const totalBrands = await this.brandModel.countDocuments();
-  
-    // Fetch brands with pagination
-    const brands = await this.brandModel.find().skip(skip).limit(limit).exec();
-  
-    // Calculate the total number of pages
-    const totalPages = Math.ceil(totalBrands / limit);
-  
-    // Return the brands along with pagination info
-    return {
-      brands,
-      pagination: {
-        page,
-        limit,
-        totalBrands,
-        totalPages,
-      },
-    };
+  async findAllBrand(getBrandsDto:GetBrandsDto): Promise<Brand[]> {
+    const skip = (getBrandsDto.page - 1) * getBrandsDto.limit;
+    const brands = await this.brandModel.find().skip(skip).limit(getBrandsDto.limit).exec();
+    return brands;
   }
   
 
@@ -69,29 +50,13 @@ export class BrandService {
     return await newModel.save();
   }
 
-  async findAllModel(page: number, limit: number): Promise<{ models: ModelEntity[], pagination: { page: number, limit: number, totalModels: number, totalPages: number } }> {
-    // Calculate the skip value for pagination
-    const skip = (page - 1) * limit;
-  
-    // Get the total number of models
-    const totalModels = await this.modelModel.countDocuments();
-  
+  async findAllModel(getModelsDto:GetModelsDto): Promise<ModelEntity[]> {
+    const skip = (getModelsDto.page - 1) * getModelsDto.limit;
+    const limit = getModelsDto.limit;
     // Fetch models with pagination
     const models = await this.modelModel.find().populate('brand').skip(skip).limit(limit).exec();
-  
-    // Calculate the total number of pages
-    const totalPages = Math.ceil(totalModels / limit);
-  
     // Return the models along with pagination info
-    return {
-      models,
-      pagination: {
-        page,
-        limit,
-        totalModels,
-        totalPages,
-      },
-    };
+    return models;
   }
   
 
@@ -111,36 +76,16 @@ export class BrandService {
 
   async getModelByBrandId(
     brandId: Types.ObjectId, 
-    page: number, 
-    limit: number
-  ) {
-    // Validate if brand exists
-    const brandExists = await this.brandModel.exists({ _id: brandId });
-    if (!brandExists) {
-      throw new NotFoundException('Brand not found');
-    }
-  
-    // Fetch the total count of models for the given brand
-    const totalModels = await this.modelModel.countDocuments({ brand: brandId });
-  
-    // Fetch models with pagination
+    getModelsDto:GetModelsDto
+  ): Promise<ModelEntity[]> {
+    const skip = (getModelsDto.page - 1) * getModelsDto.limit;
+    const limit = getModelsDto.limit;
     const models = await this.modelModel
       .find({ brand: brandId })
-      .skip((page - 1) * limit) // Skip models for the previous pages
-      .limit(limit); // Limit the number of models per page
+      .skip(skip) 
+      .limit(limit); 
   
-    // Calculate total pages
-    const totalPages = Math.ceil(totalModels / limit);
-  
-    return {
-      models,
-      pagination: {
-        page,
-        limit,
-        totalModels,
-        totalPages,
-      },
-    };
+    return models;
   }
   
 }

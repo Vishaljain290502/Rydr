@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Vehicle, VehicleDocument } from './vehicle.schema';
 import { User, UserDocument } from '../user/user.schema';
 import { CreateVehicleDto, UpdateVehicleDto } from './dto/vehicle.dto';
@@ -13,7 +13,7 @@ export class VehicleService {
   ) {}
 
   // 🆕 Add Vehicle & Link to User
-  async addVehicle(userId: string, createVehicleDto: CreateVehicleDto): Promise<User> {
+  async addVehicle(userId: Types.ObjectId, createVehicleDto: CreateVehicleDto): Promise<User> {
     const user = await this.userModel.findById(userId);
     if (!user) throw new NotFoundException('User not found');
 

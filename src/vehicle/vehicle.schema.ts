@@ -15,9 +15,6 @@ export class Vehicle {
   @Prop({ required: true })
   registrationCertificateNumber: string;
 
-  @Prop({ required: true })
-  insuranceNumber: string;
-
   @Prop()
   registrationCertificateUrl: string;
 
