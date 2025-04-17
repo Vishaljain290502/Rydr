@@ -1,7 +1,7 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
-import { User } from '../user/user.schema';
-import { Vehicle } from 'src/vehicle/vehicle.schema';
+import { User, UserSchema } from '../user/user.schema';
+import { Vehicle, VehicleSchema } from 'src/vehicle/vehicle.schema';
 
 @Schema({ _id: false }) 
 export class Location {
@@ -17,8 +17,8 @@ export const LocationSchema = SchemaFactory.createForClass(Location);
 
 @Schema()
 export class Trip extends Document {
-  @Prop({ type: String, required: true, ref: 'User' })
-  host: string;
+  @Prop({ type: UserSchema, required: true }) // Embedded full user object
+  host: User;
 
   @Prop({ type: LocationSchema, required: true })
   source: Location;
@@ -38,14 +38,14 @@ export class Trip extends Document {
   @Prop({ type: Date, required: true })
   endDate: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'Vehicle', required: true })
+  @Prop({ type: VehicleSchema, required: true }) 
   vehicle: Vehicle;
 
   @Prop({ required: true })
   seatsAvailable: number;
 
-  @Prop({ type: [{ type: String, ref: 'User' }] })
-  participants: string[];
+  @Prop({ type: [UserSchema], default: [] }) 
+  participants: User[];
 
   @Prop({
     type: String,
