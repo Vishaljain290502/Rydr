@@ -1,7 +1,33 @@
 import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Types } from 'mongoose';
+import { Document, HydratedDocument, Types } from 'mongoose';
 import { User, UserSchema } from '../user/user.schema';
 import { Vehicle, VehicleSchema } from 'src/vehicle/vehicle.schema';
+
+@Schema({ _id: false })
+export class TripUser {
+  @Prop({ required: true })
+  _id: Types.ObjectId;
+
+  @Prop({ required: true })
+  firstName: string;
+
+  @Prop({ required: true })
+  lastName: string;
+
+  @Prop()
+  profileImage: string;
+
+  @Prop()
+  number: string;
+
+  @Prop()
+  countryCode: string;
+
+}
+
+export const TripUserSchema = SchemaFactory.createForClass(TripUser);
+export type TripUserDocument = HydratedDocument<TripUser>;
+
 
 @Schema({ _id: false }) 
 export class Location {
@@ -17,8 +43,8 @@ export const LocationSchema = SchemaFactory.createForClass(Location);
 
 @Schema()
 export class Trip extends Document {
-  @Prop({ type: UserSchema, required: true }) // Embedded full user object
-  host: User;
+  @Prop({ type: TripUserSchema, required: true }) // Embedded full user object
+  host: TripUser;
 
   @Prop({ type: LocationSchema, required: true })
   source: Location;
@@ -44,8 +70,8 @@ export class Trip extends Document {
   @Prop({ required: true })
   seatsAvailable: number;
 
-  @Prop({ type: [UserSchema], default: [] }) 
-  participants: User[];
+  @Prop({ type: [TripUserSchema], default: [] }) 
+  participants: TripUser[];
 
   @Prop({
     type: String,
