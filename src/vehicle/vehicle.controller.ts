@@ -16,8 +16,10 @@ import {
   import { FileInterceptor } from '@nestjs/platform-express';
   import { FileUploadDto } from 'src/user/dto/user.dto';
   import { CloudinaryService } from '../helper/cloudinary.service';
+import { Auth, GetUserId } from 'src/guard/authGuard';
+import { Types } from 'mongoose';
   
-  @ApiTags('Vehicles') // 📌 Group API under "Vehicles" in Swagger
+  @ApiTags('Vehicles')
   @Controller('vehicle')
   export class VehicleController {
     constructor(
@@ -46,12 +48,12 @@ import {
       };
     }
   
-    // 🚗 Add Vehicle (Linked to User)
-    @Post('/add/:userId')
+    @Post('/add')
+    @Auth()
     @ApiOperation({ summary: 'Add a new vehicle for a user' })
     @ApiParam({ name: 'userId', example: '60d5f8a2b4d6c849d4a3b125', description: 'User ID' })
     @ApiResponse({ status: 201, description: 'Vehicle added successfully' })
-    async addVehicle(@Param('userId') userId: string, @Body() createVehicleDto: CreateVehicleDto) {
+    async addVehicle(@GetUserId() userId: Types.ObjectId, @Body() createVehicleDto: CreateVehicleDto) {
       const vehicle = await this.vehicleService.addVehicle(userId, createVehicleDto);
       return {
         status: 201,

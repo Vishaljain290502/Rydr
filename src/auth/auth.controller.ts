@@ -73,7 +73,11 @@ export class AuthController {
       
       const token = await this.authService.generateToken(user);
 
-    // ✅ Correctly update the access_token field
+    
+      if (loginUserDto.notificationToken) {
+        user.notificationToken = loginUserDto.notificationToken;
+      }
+
     user.token = {
       ...user.token,  
       access_token: token,

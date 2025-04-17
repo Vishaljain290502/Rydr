@@ -15,9 +15,6 @@ export class Vehicle {
   @Prop({ required: true })
   registrationCertificateNumber: string;
 
-  @Prop({ required: true })
-  insuranceNumber: string;
-
   @Prop()
   registrationCertificateUrl: string;
 
@@ -33,11 +30,11 @@ export class Vehicle {
   @Prop()
   drivingLicenseUrl: string;
 
-  @Prop({ required: true, type: Types.ObjectId, ref: 'Brand' })
-  brand: Brand;
+  @Prop()
+  brand: string;
 
-  @Prop({ required: true, type: Types.ObjectId, ref: 'Model' })
-  model: Model;
+  @Prop()
+  model: string;
 
   @Prop({ required: true })
   vehicleType: string;

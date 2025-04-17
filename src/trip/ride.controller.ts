@@ -116,6 +116,36 @@ export class TripController {
     @Query('longitude') longitude: number,
     @Query('radius') radius: number = 10, 
   ) {
-    return this.tripService.findNearbyRides(latitude, longitude, radius);
+    const  rides = await this.tripService.findNearbyRides(latitude, longitude, radius);
+    return {
+      status:HttpStatus.OK,
+      messsage:"Nearby rides  fetched successfully",
+      data:rides
+    };
+  }
+
+  @Get('ongoing')
+  @Auth()
+  async getOngoingRides(@GetUserId() userId: string) {
+    const ongoingRides = await this.tripService.getOngoingRides(userId);
+    return {
+      status: 'success',
+      data: ongoingRides,
+      message: 'Ongoing rides fetched successfully',
+    };
+  }
+
+  @Patch('status/:tripId')
+  async changeTripStatus(
+    @Param('tripId') tripId: string,
+    @Body('status') status: string
+  ) {
+    const updatedTrip = await this.tripService.updateTripStatus(tripId, status);
+    
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Trip status updated successfully',
+      data: updatedTrip,
+    };
   }
 }

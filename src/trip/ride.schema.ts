@@ -3,16 +3,17 @@ import { Document, Types } from 'mongoose';
 import { User } from '../user/user.schema';
 import { Vehicle } from 'src/vehicle/vehicle.schema';
 
-@Schema()
+@Schema({ _id: false }) 
 export class Location {
-  @Prop({ required: true })
-  latitude: number;
+  @Prop({ type: String, enum: ['Point'], required: true })
+  type: string;
 
-  @Prop({ required: true })
-  longitude: number;
+  @Prop({ type: [Number], required: true }) 
+  coordinates: number[];
 }
 
-const LocationSchema = SchemaFactory.createForClass(Location);
+export const LocationSchema = SchemaFactory.createForClass(Location);
+
 
 @Schema()
 export class Trip extends Document {
@@ -20,10 +21,16 @@ export class Trip extends Document {
   host: string;
 
   @Prop({ type: LocationSchema, required: true })
-  startLocation: Location;
+  source: Location;
+
+  @Prop({ required: true })
+  sourceAddress: string; 
 
   @Prop({ type: LocationSchema, required: true })
   destination: Location;
+
+  @Prop({ required: true })
+  destinationAddress: string;
 
   @Prop({ type: Date, required: true })
   startDate: Date;
@@ -42,14 +49,14 @@ export class Trip extends Document {
 
   @Prop({
     type: String,
-    enum: ["scheduled", "rescheduled", "canceled", "completed"],
+    enum: ["scheduled", "ongoing", "rescheduled", "canceled", "completed"],
     default: "scheduled",
   })
   status: string;
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);
-TripSchema.index({ startLocation: '2dsphere' });
+TripSchema.index({ source: '2dsphere' });
 
 TripSchema.set('toJSON', {
   virtuals: true,

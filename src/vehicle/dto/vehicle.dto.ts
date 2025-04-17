@@ -13,11 +13,6 @@ export class CreateVehicleDto {
   @IsNotEmpty()
   registrationCertificateNumber: string;
 
-  @ApiProperty({ example: 'INS123456', description: 'Vehicle insurance policy number' })
-  @IsString()
-  @IsNotEmpty()
-  insuranceNumber: string;
-
   @ApiProperty({ example: 'John Doe', description: 'Name of the vehicle owner' })
   @IsString()
   @IsNotEmpty()

@@ -1,7 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete,Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete,Query, NotFoundException } from '@nestjs/common';
 import { BrandService } from './brand.service';
-import { CreateBrandDto, UpdateBrandDto } from './dto/brand.dto';
-import { CreateModelDto, UpdateModelDto } from './dto/model.dto';
+import { CreateBrandDto, GetBrandsDto, UpdateBrandDto } from './dto/brand.dto';
+import { CreateModelDto, GetModelsDto, UpdateModelDto } from './dto/model.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { Types } from 'mongoose';
 
@@ -38,11 +38,8 @@ export class BrandController {
     type: Number,
     example: 10, // Optional example value
   })
-  async findAllBrand(
-    @Query('page') page = 1, 
-    @Query('limit') limit = 10
-  ) {
-    const brands = await this.brandService.findAllBrand(Number(page), Number(limit));
+  async findAllBrand(@Query() getBrandsDto:GetBrandsDto ) {
+    const brands = await this.brandService.findAllBrand(getBrandsDto);
     
     return {
       statusCode: 200,
@@ -114,10 +111,9 @@ export class BrandController {
     example: 10, // Optional example value
   })
   async findAllModel(
-    @Query('page') page = 1, 
-    @Query('limit') limit = 10
+    @Query() getModelsDto:GetModelsDto, 
   ) {
-    const models = await this.brandService.findAllModel(Number(page), Number(limit));
+    const models = await this.brandService.findAllModel(getModelsDto);
     return { 
       statusCode: 200, 
       message: 'Models retrieved successfully', 
@@ -180,10 +176,13 @@ export class BrandController {
   @ApiResponse({ status: 404, description: 'Brand not found' })
   async getModelByBrandId(
     @Param('id') id: string, 
-    @Query('page') page = 1, 
-    @Query('limit') limit = 10
+    @Query() getModelsDto:GetModelsDto,
   ) {
-    const models = await this.brandService.getModelByBrandId(new Types.ObjectId(id), Number(page), Number(limit));
+    const brand = await this.brandService.findOneBrand(Types.ObjectId.createFromHexString(id));
+    if (!brand) {
+      throw new NotFoundException('Brand not found');
+    }
+    const models = await this.brandService.getModelByBrandId(Types.ObjectId.createFromHexString(id), getModelsDto);
     return {
       statusCode: 200,
       message: 'Models fetched successfully',

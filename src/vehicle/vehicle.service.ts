@@ -1,29 +1,45 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Vehicle, VehicleDocument } from './vehicle.schema';
 import { User, UserDocument } from '../user/user.schema';
 import { CreateVehicleDto, UpdateVehicleDto } from './dto/vehicle.dto';
+import { BrandDocument } from '../brand/brand.schema';
+import { ModelDocument } from '../brand/model.schema';
 
 @Injectable()
 export class VehicleService {
   constructor(
     @InjectModel('Vehicle') private vehicleModel: Model<VehicleDocument>,
     @InjectModel('User') private userModel: Model<UserDocument>,
+    @InjectModel('Brand') private brandModel: Model<BrandDocument>,
+    @InjectModel('Model') private modelModel: Model<ModelDocument>
   ) {}
 
   // 🆕 Add Vehicle & Link to User
-  async addVehicle(userId: string, createVehicleDto: CreateVehicleDto): Promise<User> {
+  async addVehicle(userId: Types.ObjectId, createVehicleDto: CreateVehicleDto): Promise<User> {
     const user = await this.userModel.findById(userId);
     if (!user) throw new NotFoundException('User not found');
-
-    const newVehicle = new this.vehicleModel(createVehicleDto);
-    user.vehicles.push(newVehicle);
-    
+  
+    const brand = await this.brandModel.findById(createVehicleDto.brand);
+    if (!brand) throw new NotFoundException('Brand not found');
+  
+    const model = await this.modelModel.findById(createVehicleDto.model);
+    if (!model) throw new NotFoundException('Model not found');
+  
+    const newVehicle = new this.vehicleModel({
+      ...createVehicleDto,
+      brand: brand.name,
+      model: model.name,
+    });
+  
+    user.vehicles.push(newVehicle); 
     await user.save();
+  
     return user;
   }
-
+  
+  
   // 🔍 Get Vehicle by ID
   async getVehicleById(id: string): Promise<Vehicle> {
     const vehicle = await this.vehicleModel.findById(id);

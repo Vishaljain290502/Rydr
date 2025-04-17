@@ -1,5 +1,6 @@
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
+import { FilterDto } from 'src/utils/filter.dto';
 
 export class CreateBrandDto {
   @ApiProperty({
@@ -39,3 +40,5 @@ export class UpdateBrandDto extends PartialType(CreateBrandDto) {
   @IsOptional()
   logoUrl?: string;
 }
+
+export class GetBrandsDto extends FilterDto{}

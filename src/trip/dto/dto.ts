@@ -6,40 +6,56 @@ import {
   Min, 
   ValidateNested, 
   IsOptional, 
-  IsMongoId 
+  IsMongoId, 
+  ArrayMinSize,
+  IsArray,
+  ArrayMaxSize
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
-class LocationDto {
-  @ApiProperty({ example: 37.7749, description: 'Latitude of the location' })
+export class LocationDto {
+  @ApiProperty({ example: 'Point', description: 'GeoJSON type', enum: ['Point'] })
   @IsNotEmpty()
-  @IsNumber()
-  readonly latitude: number;
+  @IsString()
+  readonly type: 'Point';
 
-  @ApiProperty({ example: -122.4194, description: 'Longitude of the location' })
+  @ApiProperty({
+    example: [75.8577, 22.7196],
+    description: 'Coordinates in [longitude, latitude] format',
+    minItems: 2,
+    maxItems: 2,
+  })
   @IsNotEmpty()
-  @IsNumber()
-  readonly longitude: number;
+  @IsArray()
+  @ArrayMinSize(2)
+  @ArrayMaxSize(2)
+  @IsNumber({}, { each: true })
+  readonly coordinates: number[];
 }
 
 export class CreateTripDto {
-  @ApiProperty({ description: 'User ID of the trip host', example: '60c72b2f9b1e8b002b5f9a3d' })
-  @IsNotEmpty()
-  @IsMongoId()
-  readonly host: string;
-
   @ApiProperty({ description: 'Start location of the trip' })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => LocationDto)
-  readonly startLocation: LocationDto;
+  readonly source: LocationDto;
+
+  @ApiProperty({ description: 'Source address (human-readable)' })
+  @IsNotEmpty()
+  @IsString()
+  readonly sourceAddress: string;
 
   @ApiProperty({ description: 'Destination of the trip' })
   @IsNotEmpty()
   @ValidateNested()
   @Type(() => LocationDto)
   readonly destination: LocationDto;
+
+  @ApiProperty({ description: 'Destination address (human-readable)' })
+  @IsNotEmpty()
+  @IsString()
+  readonly destinationAddress: string; 
 
   @ApiProperty({ description: 'Start date of the trip', example: '2024-06-01T00:00:00.000Z' })
   @IsNotEmpty()
@@ -66,11 +82,6 @@ export class CreateTripDto {
   @IsOptional()
   @IsMongoId({ each: true })
   readonly participants?: string[];
-
-  @ApiProperty({ description: 'Trip status', enum: ["scheduled", "rescheduled", "canceled", "completed"], default: "scheduled" })
-  @IsOptional()
-  @IsString()
-  readonly status?: string;
 }
 
 export class UpdateTripDto {
@@ -83,13 +94,23 @@ export class UpdateTripDto {
   @IsOptional()
   @ValidateNested()
   @Type(() => LocationDto)
-  readonly startLocation?: LocationDto;
+  readonly source?: LocationDto;
+
+  @ApiProperty({ description: 'Source address (human-readable)', required: false })
+  @IsOptional()
+  @IsString()
+  readonly sourceAddress?: string;
 
   @ApiProperty({ description: 'Destination of the trip', required: false })
   @IsOptional()
   @ValidateNested()
   @Type(() => LocationDto)
   readonly destination?: LocationDto;
+
+  @ApiProperty({ description: 'Destination address (human-readable)', required: false })
+  @IsOptional()
+  @IsString()
+  readonly destinationAddress?: string;
 
   @ApiProperty({ description: 'Start date of the trip', example: '2024-06-01T00:00:00.000Z', required: false })
   @IsOptional()

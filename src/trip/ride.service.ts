@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Trip } from './ride.schema';
@@ -92,7 +92,6 @@ export class TripService {
   
     await this.tripModel.deleteOne({ _id: tripId });
   }
-  
 
   async listAllTrips(userId: Types.ObjectId): Promise<Trip[]> {
     return this.tripModel.find({ host: userId });
@@ -111,10 +110,10 @@ export class TripService {
   }
 
   async findNearbyRides(latitude: number, longitude: number, radiusInKm: number) {
-    const radiusInMeters = radiusInKm * 1000; // Convert km to meters
+    const radiusInMeters = radiusInKm * 1000; 
 
     return this.tripModel.find({
-      startLocation: {
+      source: {
         $near: {
           $geometry: { type: 'Point', coordinates: [longitude, latitude] },
           $maxDistance: radiusInMeters,
@@ -123,5 +122,43 @@ export class TripService {
       status: "scheduled", 
     });
   }
+
+  async getOngoingRides(userId: string) {
+    const ongoingRides = await this.tripModel
+      .find({
+        $or: [
+          { host: userId }, 
+          { participants: userId },
+        ],
+        status: 'ongoing', 
+      })
+      .populate('vehicle')
+      .populate('host')
+      .populate('participants'); // Optionally populate related data like vehicle and participants
+
+    return ongoingRides;
+  }
+
+  // trip.service.ts
+  async updateTripStatus(tripId: string, status: string) {
+    const validStatuses = ["scheduled", "ongoing", "rescheduled", "canceled", "completed"];
+
+    if (!validStatuses.includes(status)) {
+      throw new BadRequestException('Invalid trip status');
+    }
+
+    const updatedTrip = await this.tripModel.findByIdAndUpdate(
+      tripId,
+      { status },
+      { new: true }
+    );
+
+    if (!updatedTrip) {
+      throw new NotFoundException('Trip not found');
+    }
+
+    return updatedTrip;
+  }
+
 
 }
