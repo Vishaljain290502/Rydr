@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, HttpStatus, Query, Req } from '@nestjs/common';
 import { TripService } from './ride.service';
 import { CreateTripDto, UpdateTripDto } from './dto/dto';
 import { AuthGuard, GetUserId } from '../guard/authGuard';
@@ -119,7 +119,7 @@ export class TripController {
     const  rides = await this.tripService.findNearbyRides(latitude, longitude, radius);
     return {
       status:HttpStatus.OK,
-      messsage:"Nearby rides  fetched successfully",
+      message:"Nearby rides  fetched successfully",
       data:rides
     };
   }
@@ -148,4 +148,17 @@ export class TripController {
       data: updatedTrip,
     };
   }
+
+  
+  @Get('my-trips')
+  @Auth()
+  async getMyTrips(@Req() req, @GetUserId() userId:Types.ObjectId ) {
+    const rides = await  this.tripService.getMyTrips(userId);
+    return {
+      status:HttpStatus.OK,
+      message:"Rides Fetched succesfully",
+      data:rides
+    }
+  }
+
 }

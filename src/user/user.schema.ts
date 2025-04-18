@@ -66,7 +66,7 @@ export class UserDocument {
   @Prop({ required: true })
   firstName: string;
 
-  @Prop({ required: true })
+  @Prop()
   lastName: string;
 
   @Prop()

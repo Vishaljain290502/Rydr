@@ -26,16 +26,18 @@ export class TripService {
     const { vehicle: vehicleId, participants = [], ...restDto } = createTripDto;
 
     const host = await this.userModel.findById(userId);
+    console.log(host);
     if (!host) {
-      throw new NotFoundException('Host user not found');
+      throw new BadRequestException('Host user not found');
     }
 
-    const selectedVehicle = host.vehicles.find(
-      (v: any) => v._id.toString() === vehicleId,
-    );
-    if (!selectedVehicle) {
-      throw new NotFoundException('Vehicle not found in host’s profile');
+    if(host.vehicles.length==0){
+      throw new BadRequestException('Host vehicle not found');
     }
+    const selectedVehicle = host.vehicles[0];
+    // const selectedVehicle = host.vehicles.find(
+    //   (v: any) => v._id.toString() === vehicleId,
+    // );
   
 
     const participantUsers = await this.userModel.find({
@@ -90,54 +92,65 @@ export class TripService {
   
   async joinTrip(tripId: string, userId: Types.ObjectId): Promise<Trip> {
     const trip = await this.tripModel.findById(tripId);
+  
     if (!trip) {
       throw new NotFoundException('Trip not found');
     }
-
+  
     const user = await this.userModel.findById(userId);
-
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+  
     const alreadyJoined = trip.participants.some(
       (participant) => participant._id.toString() === user._id.toString(),
     );
-
+  
     if (alreadyJoined) {
       throw new BadRequestException('User already joined this trip');
     }
-
+  
     if (trip.participants.length >= trip.seatsAvailable) {
       throw new BadRequestException('No seats available');
     }
-
+  
     // ✅ Push user to participants
     trip.participants.push({
-      _id:user._id,
-      firstName:user.firstName,
-      lastName:user.lastName,
-      profileImage:user.profileImage,
-      number:user.number,
-      countryCode:user.countryCode,
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      profileImage: user.profileImage,
+      number: user.number,
+      countryCode: user.countryCode,
     });
     trip.seatsAvailable -= 1;
-
+  
     const updatedTrip = await trip.save();
-
-    // 📲 Send notification to the user who just joined
-    const title = '🎉 Trip Joined Successfully';
-    const message = `You’ve joined a trip from ${trip.sourceAddress} to ${trip.destinationAddress}.`;
-
+  
+    // ✅ Notification to the user
+    const userTitle = '🎉 Trip Joined Successfully';
+    const userMessage = `You’ve joined a trip from ${trip.sourceAddress} to ${trip.destinationAddress}.`;
+  
+    // ✅ Notification to the host
+    const hostTitle = '👤 New Participant Joined';
+    const hostMessage = `${user.firstName} ${user.lastName} has joined your trip from ${trip.sourceAddress} to ${trip.destinationAddress}.`;
+  
     try {
-      await this.notificationService.sendPushNotificationToUsers(
-        [user],
-        title,
-        message,
-      );
+      await this.notificationService.sendPushNotificationToUsers([user], userTitle, userMessage);
+  
+      // Send to host (ensure host is populated, if not use userModel to fetch)
+      const hostUser = await this.userModel.findById(trip.host._id || trip.host);
+  
+      if (hostUser) {
+        await this.notificationService.sendPushNotificationToUsers([hostUser], hostTitle, hostMessage);
+      }
     } catch (error) {
-      console.error('Failed to send join trip notification:', error);
+      console.error('Notification error:', error);
     }
-
+  
     return updatedTrip;
   }
-
+  
   async getTripDetails(tripId: string): Promise<Trip> {
     const trip = await this.tripModel.findById(tripId).populate('participants');
     if (!trip) {
@@ -302,4 +315,13 @@ export class TripService {
 
     return updatedTrip;
   }
+
+  async getMyTrips(userId: Types.ObjectId): Promise<{ hostedTrips: Trip[]; joinedTrips: Trip[] }> {
+    const hostedTrips = await this.tripModel.find({ 'host._id': userId }).sort({ startDate: 1 });
+    const joinedTrips = await this.tripModel.find({ 'participants._id': userId }).sort({ startDate: 1 });
+  
+    return { hostedTrips, joinedTrips };
+  }
+  
+  
 }
