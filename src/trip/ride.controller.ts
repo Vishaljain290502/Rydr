@@ -1,10 +1,29 @@
-import { Controller, Post, Get, Patch, Delete, Param, Body, UseGuards, HttpStatus, Query, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  HttpStatus,
+  Query,
+  Req,
+} from '@nestjs/common';
 import { TripService } from './ride.service';
 import { CreateTripDto, UpdateTripDto } from './dto/dto';
 import { AuthGuard, GetUserId } from '../guard/authGuard';
 import { Auth } from '../guard/authGuard';
 import { Types } from 'mongoose';
-import { ApiSecurity, ApiTags, ApiOperation, ApiParam, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiSecurity,
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiBody,
+} from '@nestjs/swagger';
 
 @ApiTags('Trips')
 @ApiSecurity('basic')
@@ -17,7 +36,10 @@ export class TripController {
   @ApiOperation({ summary: 'Create a new trip' })
   @ApiBody({ type: CreateTripDto })
   @ApiResponse({ status: 201, description: 'Trip created successfully' })
-  async createTrip(@Body() createTripDto: CreateTripDto, @GetUserId() userId: Types.ObjectId) {
+  async createTrip(
+    @Body() createTripDto: CreateTripDto,
+    @GetUserId() userId: Types.ObjectId,
+  ) {
     const trip = await this.tripService.createTrip(createTripDto, userId);
     return {
       status: HttpStatus.CREATED,
@@ -25,13 +47,16 @@ export class TripController {
       data: trip,
     };
   }
-  
+
   @Post('/join')
   @Auth()
   @ApiOperation({ summary: 'Join an existing trip' })
   @ApiBody({ schema: { properties: { tripId: { type: 'string' } } } })
   @ApiResponse({ status: 200, description: 'Successfully joined the trip' })
-  async joinTrip(@Body() body: { tripId: string }, @GetUserId() userId: Types.ObjectId) {
+  async joinTrip(
+    @Body() body: { tripId: string },
+    @GetUserId() userId: Types.ObjectId,
+  ) {
     const joinedTrip = await this.tripService.joinTrip(body.tripId, userId);
     return {
       status: HttpStatus.OK,
@@ -39,12 +64,15 @@ export class TripController {
       data: joinedTrip,
     };
   }
-  
+
   @Get('/tripDetails/:tripId')
   @Auth()
   @ApiOperation({ summary: 'Get trip details' })
   @ApiParam({ name: 'tripId', description: 'ID of the trip', type: 'string' })
-  @ApiResponse({ status: 200, description: 'Trip details retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Trip details retrieved successfully',
+  })
   async getTripDetails(@Param('tripId') tripId: string) {
     const trip = await this.tripService.getTripDetails(tripId);
     return {
@@ -53,13 +81,16 @@ export class TripController {
       data: trip,
     };
   }
-  
+
   @Post('/leaveTrip')
   @Auth()
   @ApiOperation({ summary: 'Leave a trip' })
   @ApiBody({ schema: { properties: { tripId: { type: 'string' } } } })
   @ApiResponse({ status: 200, description: 'Successfully left the trip' })
-  async leaveTrip(@Body() body: { tripId: string }, @GetUserId() userId: Types.ObjectId) {
+  async leaveTrip(
+    @Body() body: { tripId: string },
+    @GetUserId() userId: Types.ObjectId,
+  ) {
     const leftTrip = await this.tripService.leaveTrip(body.tripId, userId);
     return {
       status: HttpStatus.OK,
@@ -67,13 +98,16 @@ export class TripController {
       data: leftTrip,
     };
   }
-  
+
   @Delete('/cancelTrip/:tripId')
   @Auth()
   @ApiOperation({ summary: 'Cancel a trip' })
   @ApiParam({ name: 'tripId', description: 'ID of the trip', type: 'string' })
   @ApiResponse({ status: 200, description: 'Trip canceled successfully' })
-  async cancelTrip(@Param('tripId') tripId: string, @GetUserId() userId: Types.ObjectId) {
+  async cancelTrip(
+    @Param('tripId') tripId: string,
+    @GetUserId() userId: Types.ObjectId,
+  ) {
     await this.tripService.cancelTrip(tripId, userId);
     return {
       status: HttpStatus.OK,
@@ -81,7 +115,7 @@ export class TripController {
       data: null,
     };
   }
-  
+
   @Get('/getAllTrips')
   @Auth()
   @ApiOperation({ summary: 'List all trips' })
@@ -94,33 +128,45 @@ export class TripController {
       data: trips,
     };
   }
-  
+
   @Patch('/updateTrip/:tripId')
   @Auth()
   @ApiOperation({ summary: 'Update trip details' })
   @ApiParam({ name: 'tripId', description: 'ID of the trip', type: 'string' })
   @ApiBody({ type: UpdateTripDto })
   @ApiResponse({ status: 200, description: 'Trip updated successfully' })
-  async updateTrip(@Param('tripId') tripId: string, @Body() updateTripDto: UpdateTripDto, @GetUserId() userId: Types.ObjectId) {
-    const updatedTrip = await this.tripService.updateTrip(tripId, updateTripDto, userId);
+  async updateTrip(
+    @Param('tripId') tripId: string,
+    @Body() updateTripDto: UpdateTripDto,
+    @GetUserId() userId: Types.ObjectId,
+  ) {
+    const updatedTrip = await this.tripService.updateTrip(
+      tripId,
+      updateTripDto,
+      userId,
+    );
     return {
       status: HttpStatus.OK,
       message: 'Trip updated successfully',
       data: updatedTrip,
     };
-  }  
+  }
 
   @Get('nearby')
   async getNearbyRides(
     @Query('latitude') latitude: number,
     @Query('longitude') longitude: number,
-    @Query('radius') radius: number = 10, 
+    @Query('radius') radius: number = 10,
   ) {
-    const  rides = await this.tripService.findNearbyRides(latitude, longitude, radius);
+    const rides = await this.tripService.findNearbyRides(
+      latitude,
+      longitude,
+      radius,
+    );
     return {
-      status:HttpStatus.OK,
-      message:"Nearby rides  fetched successfully",
-      data:rides
+      status: HttpStatus.OK,
+      message: 'Nearby rides  fetched successfully',
+      data: rides,
     };
   }
 
@@ -138,10 +184,10 @@ export class TripController {
   @Patch('status/:tripId')
   async changeTripStatus(
     @Param('tripId') tripId: string,
-    @Body('status') status: string
+    @Body('status') status: string,
   ) {
     const updatedTrip = await this.tripService.updateTripStatus(tripId, status);
-    
+
     return {
       statusCode: HttpStatus.OK,
       message: 'Trip status updated successfully',
@@ -149,16 +195,14 @@ export class TripController {
     };
   }
 
-  
   @Get('my-trips')
   @Auth()
-  async getMyTrips(@Req() req, @GetUserId() userId:Types.ObjectId ) {
-    const rides = await  this.tripService.getMyTrips(userId);
+  async getMyTrips(@Req() req, @GetUserId() userId: Types.ObjectId) {
+    const rides = await this.tripService.getMyTrips(userId);
     return {
-      status:HttpStatus.OK,
-      message:"Rides Fetched succesfully",
-      data:rides
-    }
+      status: HttpStatus.OK,
+      message: 'Rides Fetched succesfully',
+      data: rides,
+    };
   }
-
 }

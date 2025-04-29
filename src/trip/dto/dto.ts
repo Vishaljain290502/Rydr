@@ -62,11 +62,7 @@ export class CreateTripDto {
   @IsDateString()
   readonly startDate: string;
 
-  @ApiProperty({ description: 'End date of the trip', example: '2024-06-05T00:00:00.000Z' })
-  @IsNotEmpty()
-  @IsDateString()
-  readonly endDate: string;
-
+ 
   @ApiProperty({ description: 'Vehicle ID used for the trip', example: '60c72b2f9b1e8b002b5f9a3e' })
   @IsNotEmpty()
   @IsMongoId()
@@ -82,6 +78,10 @@ export class CreateTripDto {
   @IsOptional()
   @IsMongoId({ each: true })
   readonly participants?: string[];
+
+  @ApiProperty({description: 'Prce per  person'})
+  @IsNumber()
+  readonly pricePerPerson?: number;
 }
 
 export class UpdateTripDto {
@@ -116,11 +116,6 @@ export class UpdateTripDto {
   @IsOptional()
   @IsDateString()
   readonly startDate?: string;
-
-  @ApiProperty({ description: 'End date of the trip', example: '2024-06-05T00:00:00.000Z', required: false })
-  @IsOptional()
-  @IsDateString()
-  readonly endDate?: string;
 
   @ApiProperty({ description: 'Vehicle ID used for the trip', example: '60c72b2f9b1e8b002b5f9a3e', required: false })
   @IsOptional()

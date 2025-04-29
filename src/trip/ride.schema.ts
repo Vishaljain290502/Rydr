@@ -22,7 +22,6 @@ export class TripUser {
 
   @Prop()
   countryCode: string;
-
 }
 
 export const TripUserSchema = SchemaFactory.createForClass(TripUser);
@@ -41,9 +40,16 @@ export class Location {
 export const LocationSchema = SchemaFactory.createForClass(Location);
 
 
+export enum TripStatus {
+   Scheduled="scheduled",
+   Ongoing="ongoing",
+   ReScheduled="rescheduled",
+   Canceled="canceled",
+   ompleted="completed"
+}
 @Schema()
 export class Trip extends Document {
-  @Prop({ type: TripUserSchema, required: true }) // Embedded full user object
+  @Prop({ type: TripUserSchema, required: true }) 
   host: TripUser;
 
   @Prop({ type: LocationSchema, required: true })
@@ -61,9 +67,6 @@ export class Trip extends Document {
   @Prop({ type: Date, required: true })
   startDate: Date;
 
-  @Prop({ type: Date, required: true })
-  endDate: Date;
-
   @Prop({ type: VehicleSchema, required: true }) 
   vehicle: Vehicle;
 
@@ -75,10 +78,13 @@ export class Trip extends Document {
 
   @Prop({
     type: String,
-    enum: ["scheduled", "ongoing", "rescheduled", "canceled", "completed"],
+    enum: TripStatus,
     default: "scheduled",
   })
   status: string;
+
+  @Prop({required: true,  default:0})
+  pricePerPerson: number;
 }
 
 export const TripSchema = SchemaFactory.createForClass(Trip);
